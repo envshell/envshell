@@ -3,5 +3,6 @@ word
 string
 eol
 metachar
+terminate
 
 Usage:

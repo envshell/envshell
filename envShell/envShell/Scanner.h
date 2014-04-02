@@ -7,10 +7,10 @@
 class Scanner {
 public:
 	Scanner();
-	vector<Token> scan(string inCommand);
+	vector<Token*> scan(string inCommand);
 
 private:
-	vector<Token> tokens;
+	vector<Token*> tokens;
 };
 
 #endif
