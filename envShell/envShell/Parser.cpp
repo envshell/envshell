@@ -20,7 +20,7 @@ void Parser::setValues(){
 	myCommand = myTokens[0]->getValue;
 	//store arguments until hit "<" or EOL
 	int i = 1;
-	while(myTokens[i]->getValue() != "<" && myTokens[i]->getValue() != "eol"){
+	while(myTokens[i]->getValue() != "<" && (myTokens[i]->getValue() != "eol" && myTokens[i]->getType() == "eol")){
 		myArguments.push_back(myTokens[i]->getValue());
 		i++;
 	}
@@ -61,7 +61,7 @@ void Parser::runProgram(){
 	}else if(myCommand == "^D"){
 		//exit the shell program
 	}else{
-		//the command is a user-program command
+		//the command is a user-program command, need to use fork() and wait() until the child finishes
 
 	}
 
