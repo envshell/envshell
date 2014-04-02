@@ -1,0 +1,7 @@
+Types:
+word
+string
+eol
+metachar
+
+Usage:
