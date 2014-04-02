@@ -14,15 +14,25 @@ public:
 
 	string getCommandString();
 
-	void doSomething();
+	void setValues();
+
+	void runProgram();
 
 private:
-	string myString;
-	vector<Token> myTokens;
+	//Parts of input 
+	string myCommandString;
+	vector<Token*> myTokens;
 	string myCommand;
 	vector<string> myArguments;
 	string myInfile;
 	string myOutfile;
+
+
+	string myComment;
+	string myNewShellPrompt;
+	string myEnvironmentVariable;
+	string myEnvironmentVariableString;
+	string myDirectoryName;
 
 
 };
