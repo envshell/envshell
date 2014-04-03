@@ -1,10 +1,10 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-
 #include<string>
 #include<vector>
 #include"Token.h"
+#include "EnvVar.h"
 #include<iostream>
 using namespace std;
 
@@ -34,7 +34,7 @@ private:
 	string myEnvironmentVariable;
 	string myEnvironmentVariableString;
 	string myDirectoryName;
-	vector<EnvVar> environmentVariables;
+	vector<EnvVar *> environmentVariables;
 
 
 };
