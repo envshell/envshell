@@ -46,8 +46,8 @@ vector<Token*> Scanner::scan(string inCommand) {
 	bool found = false;
 	int spacei = -1;
 	int j = 0;
-	while (!found && j >= inCommand.length()) {
-		if (isspace(inCommand[j])) {
+	while (!found && j < inCommand.length()) {
+		if (isspace(inCommand[j]) || inCommand[j] == '<' || inCommand[j] == '>') {
 			found = true;
 
 			//Advance until the next non-whitespace char
@@ -61,7 +61,11 @@ vector<Token*> Scanner::scan(string inCommand) {
 		j++;
 	}
 
-	if (!found) { //if no spaces it is invalid
+	if (j == inCommand.length()) {
+		//Reached end, this is one large word
+		spacei = inCommand.length();
+	}
+	else if (!found) { //if no spaces it is invalid
 		throw 1;		//Invalid input string exception
 	}
 
@@ -104,7 +108,9 @@ vector<Token*> Scanner::scan(string inCommand) {
 			int j = i + 1;
 			int originalPos = i;
 			int delimi = -1;
-			while ((!isspace(inCommand[j]) || inCommand[j] != '<' || inCommand[j] != '>') && j < inCommand.length()) {
+			while ((!isspace(inCommand[j]) && inCommand[j] != '<' && inCommand[j] && '>') && j < inCommand.length()) {
+				char charher = inCommand[j];
+				bool space = isspace(inCommand[j]);
 				j++;
 			}
 
@@ -137,8 +143,8 @@ vector<Token*> Scanner::scan(string inCommand) {
 	}
 
 	//Now add an end of line token
-	type = "eol";
-	value = "eol";
+	type = "end-of-line";
+	value = "EOL";
 	tokens.push_back(new Token(type, value));
 
 	//Finally return our tokens

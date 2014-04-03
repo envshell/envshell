@@ -6,7 +6,7 @@ using namespace std;
 
 int main() {
 	//Test the scanner implementation
-	string command = "wc -l f1 f2 f3";
+	string command = "setdir ./bin";
 	Scanner * scanner = new Scanner();
 
 	vector<Token*> tokens;
@@ -24,4 +24,5 @@ int main() {
 
 	cin.ignore(200, '\n');
 	cin.ignore(200, '\n');
+	
 }
