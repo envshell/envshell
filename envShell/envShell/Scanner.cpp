@@ -6,15 +6,24 @@ using namespace std;
 
 Scanner::Scanner() {}
 
+Scanner::~Scanner() {
+	for (int i = 0; i < tokens.size(); i++) {
+		delete tokens[i];
+	}
+}
+
 vector<Token*> Scanner::scan(string inCommand) {
-	bool invalid = false;
 	string type;
 	string value;
 
+	//handle if there is an input of "^d" on the line
+	if (inCommand.find("^d") != string::npos) {
+		return tokens;
+	}
+
 	//Check the validity of the first character of the command
-	if (inCommand[0] != '%' && !isalpha(inCommand[0])){
-		invalid = false;	//first char must be '%' or an alphabetic letter
-		//throw exception
+	if (inCommand[0] != '%' && !isalpha(inCommand[0])) {
+		throw 1;		//Invalid input string exception
 	}
 
 	//Handle if the first value is a %
@@ -33,61 +42,97 @@ vector<Token*> Scanner::scan(string inCommand) {
 	}
 
 	//read the first word. We know it is a word because otherwise we would've returned the comment already
-	int spacei = inCommand.find(" ");
-	if (spacei == string::npos) { //if no spaces it is invalid
-		invalid = true;
-		//throw exception
+	//int spacei = inCommand.find(" ");
+	bool found = false;
+	int spacei = -1;
+	int j = 0;
+	while (!found && j >= inCommand.length()) {
+		if (isspace(inCommand[j])) {
+			found = true;
+
+			//Advance until the next non-whitespace char
+			while (isspace(inCommand[j])) {
+				j++;
+			}
+
+			spacei = j;
+		}
+		
+		j++;
+	}
+
+	if (!found) { //if no spaces it is invalid
+		throw 1;		//Invalid input string exception
 	}
 
 	string firstValue = inCommand.substr(0, spacei);
 	string firstType = "word";
 	tokens.push_back(new Token(firstType, firstValue));
-	spacei++;
 
 	//Iterate through rest of string looking for delimiters
 	for (int i = spacei; i < inCommand.length(); i++) {
 		char c = inCommand[i];
-
-		//handle if the input is ^d
-
 
 		//Take action depending on the character present
 		if (c == '<' || c == '>') {
 			//metachar handling
 			type = "metachar";
 			value = "" + c;
+
+			tokens.push_back(new Token(type, value));
 		}
 		else if (c == '"') {
 			//string handling
 			value;
 			type = "string";
 
-			bool found = false;		//Found second set of quotes
-			int endi = i;
-			while (!found) {
-				if (endi >= inCommand.length()) {
-					//Second quotes not found, incorrect string
-					//throw exception
-				}
-				if (inCommand[endi] == '"') {
-					//found the closing quote
-					found = true;
-					value = inCommand.substr(i, endi);
-				}
-
-				endi++;
-			}
+			//Find the enxty set of quotations
+			int quotei = inCommand.find('"', i + 1);
+			value = inCommand.substr(i, quotei - i + 1);
 
 			//Now add to our vector of Tokens
 			tokens.push_back(new Token(type, value));
 
 			//Now advance i to the end of the string
-			i = endi;
+			i = quotei;
 		}
-		else if (isalpha(c)) {
+		else if (!isspace(c)) {
 			//Handle if it is a word
 			type = "word";
-			value = inCommand.substr(i, inCommand.find(" ", i+1));
+
+			//find the next delimiting character
+			int j = i + 1;
+			int originalPos = i;
+			int delimi = -1;
+			while ((!isspace(inCommand[j]) || inCommand[j] != '<' || inCommand[j] != '>') && j < inCommand.length()) {
+				j++;
+			}
+
+			//if reached end of string
+			if (j >= inCommand.length()) {
+				value = inCommand.substr(originalPos, inCommand.length() - originalPos);
+
+				tokens.push_back(new Token(type, value));
+				i = inCommand.length();	//advance index
+			}
+			else if (isspace(inCommand[j])) {
+				delimi = j;
+
+				value = inCommand.substr(originalPos, delimi - originalPos + 1);
+				tokens.push_back(new Token(type, value));
+				i = delimi;
+			}
+			else if (inCommand[j] == '<' || inCommand[j] == '>') {
+				delimi = j;
+
+				value = inCommand.substr(originalPos, delimi - originalPos + 1);
+				tokens.push_back(new Token(type, value));
+				i = delimi - 1;
+			}
+			else {
+				//Something has gone wrong
+				throw 99;
+			}
 		}
 	}
 

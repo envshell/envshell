@@ -17,7 +17,7 @@ void Parser::parse(){
 
 //set token variables to the private command, args, infile, outfile values
 void Parser::setValues(){
-	myCommand = myTokens[0]->getValue;
+	myCommand = myTokens[0]->getValue();
 	//store arguments until hit "<" or EOL
 	int i = 1;
 	while(myTokens[i]->getValue() != "<" && (myTokens[i]->getValue() != "eol" && myTokens[i]->getType() == "eol")){

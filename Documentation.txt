@@ -6,3 +6,7 @@ metachar
 terminate
 
 Usage:
+
+Exception List:
+1 - Invalid input exception
+99 - Unreachable code exception

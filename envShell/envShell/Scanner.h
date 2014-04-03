@@ -7,6 +7,8 @@
 class Scanner {
 public:
 	Scanner();
+	~Scanner();
+
 	vector<Token*> scan(string inCommand);
 
 private:
