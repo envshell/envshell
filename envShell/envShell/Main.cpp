@@ -6,10 +6,12 @@
 using namespace std;
 
 int main() {
+	string prompt = "envsh > ";
+
 	//Test the scanner implementation
 	string command = "/usr/bin/cat /etc/issue /etc/hosts /etc/debian_version > /tmp/output";
 	Parser* p = new Parser(command);
-	p->parse();
+	p->parse(prompt);
 
 	
 

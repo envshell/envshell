@@ -17,7 +17,7 @@ vector<Token*> Scanner::scan(string inCommand) {
 	string value;
 
 	//handle if there is an input of "^d" on the line
-	if (inCommand.find("^d") != string::npos) {
+	if (inCommand.find("^D") != string::npos) {
 		return tokens;
 	}
 
