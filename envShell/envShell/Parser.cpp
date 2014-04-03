@@ -46,13 +46,23 @@ void Parser::runProgram(){
 		myNewShellPrompt = myArguments[0];
 	}else if(myCommand == "setenv"){
 		//set the environment variable to the value contained in the string
-		myEnvironmentVariable = myArguments[0];
-		myEnvironmentVariableString = myArguments[1];
+		EnvVar element;
+		element.setName = myArguments[0];
+		element.setValue = myArguments[1];
+		environmentVariables.push_back(element);
+		
 	}else if(myCommand == "unsetenv"){
 		//remove this environment variable from the list passed to applications
-		myEnvironmentVariable = myArguments[0];
+		EnvVar element;
+		element.setName = myArguments[0];
+		element.setValue = myArguments[1];
+		//find element in the environmentVariable list and delete
+
 	}else if(myCommand == "listenv"){
 		//prints the list of environment variables and their values
+		for(int i = 0; i < environmentVariables.size(); i++){
+			printf("Environment Variable: %s       Variable Value: %s", environmentVariables[i].getName(), environmentVariables[i].getValue());
+		}
 	}else if(myCommand == "setdir"){
 		//set shell's concept of current directory to directory_name (See getwd(3) and chdir(2))
 		myDirectoryName = myArguments[0];

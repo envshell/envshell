@@ -33,6 +33,7 @@ private:
 	string myEnvironmentVariable;
 	string myEnvironmentVariableString;
 	string myDirectoryName;
+	vector<EnvVar> environmentVariables;
 
 
 };
