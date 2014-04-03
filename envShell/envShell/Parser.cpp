@@ -11,7 +11,11 @@ string Parser::getCommandString(){
 
 void Parser::parse(){
 	Scanner s;
+	try{
 	myTokens = s.scan(myCommandString);
+	}catch(int i){
+	cout << "Exception Number: " << i << endl;
+	}
 	setValues();
 }
 
