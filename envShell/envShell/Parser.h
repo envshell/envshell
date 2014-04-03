@@ -11,13 +11,13 @@ using namespace std;
 class Parser{
 public:
 	Parser(string commandString);
-	void parse();
+	bool parse(string & prompt);
 
 	string getCommandString();
 
-	void setValues();
+	bool setValues(string & prompt);
 
-	void runProgram();
+	bool runProgram(string & prompt);
 
 private:
 	//Parts of input 

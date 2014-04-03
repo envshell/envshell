@@ -10,18 +10,18 @@ string Parser::getCommandString(){
 	return myCommandString;
 }
 
-void Parser::parse(){
+bool Parser::parse(string & prompt){
 	Scanner s;
 	try{
 	myTokens = s.scan(myCommandString);
 	}catch(int i){
 	cout << "Exception Number: " << i << endl;
 	}
-	setValues();
+	return setValues(prompt);
 }
 
 //set token variables to the private command, args, infile, outfile values
-void Parser::setValues(){
+bool Parser::setValues(string & prompt){
 	myCommand = myTokens[0]->getValue();
 	//store arguments until hit "<" or EOL
 	int i = 1;
@@ -37,18 +37,21 @@ void Parser::setValues(){
 	if(myTokens[i]->getValue() == ">"){
 		myOutfile = myTokens[i++]->getValue();
 	}
-	runProgram();
+	return runProgram(prompt);
 }
 
 
-void Parser::runProgram(){
+bool Parser::runProgram(string & prompt){
 	//built-in commands
 	if(myCommand == "%"){
 		//the argument will be the comment
 		myComment = myArguments[0];
+		//printf("% %s", myComment);
+		cout << "% " << myComment << endl;
 	}else if(myCommand == "prompt"){
 		//set the shell prompt to the prompt argument
 		myNewShellPrompt = myArguments[0];
+		prompt = myNewShellPrompt;
 	}else if(myCommand == "setenv"){
 		//set the environment variable to the value contained in the string
 		EnvVar* element = new EnvVar(myArguments[0], myArguments[1]);
@@ -69,15 +72,18 @@ void Parser::runProgram(){
 	}else if(myCommand == "setdir"){
 		//set shell's concept of current directory to directory_name (See getwd(3) and chdir(2))
 		myDirectoryName = myArguments[0];
+
 	}else if(myCommand == "bye"){
 		//exit the shell program
+		return false;
 	}else if(myCommand == "^D"){
 		//exit the shell program
+		return false;
 	}else{
 		//the command is a user-program command, need to use fork() and wait() until the child finishes
 
 	}
-
+	return true;
 
 
 
