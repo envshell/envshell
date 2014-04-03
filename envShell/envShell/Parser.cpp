@@ -25,7 +25,7 @@ void Parser::setValues(){
 	myCommand = myTokens[0]->getValue();
 	//store arguments until hit "<" or EOL
 	int i = 1;
-	while(myTokens[i]->getValue() != "<" && (myTokens[i]->getValue() != "eol" && myTokens[i]->getType() == "eol")){
+	while (myTokens[i]->getValue() != "<" && myTokens[i]->getValue() != ">" && (myTokens[i]->getValue() != "EOL" && myTokens[i]->getType() != "end-of-line")){
 		myArguments.push_back(myTokens[i]->getValue());
 		i++;
 	}

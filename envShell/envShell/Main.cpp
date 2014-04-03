@@ -7,7 +7,7 @@ using namespace std;
 
 int main() {
 	//Test the scanner implementation
-	string command = "setdir ./bin";
+	string command = "/usr/bin/cat /etc/issue /etc/hosts /etc/debian_version > /tmp/output";
 	Parser* p = new Parser(command);
 	p->parse();
 

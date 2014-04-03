@@ -22,7 +22,7 @@ vector<Token*> Scanner::scan(string inCommand) {
 	}
 
 	//Check the validity of the first character of the command
-	if (inCommand[0] != '%' && !isalpha(inCommand[0])) {
+	if (inCommand[0] != '%' && !isalpha(inCommand[0]) && inCommand[0] != '/') {
 		throw 1;		//Invalid input string exception
 	}
 
