@@ -1,6 +1,7 @@
 #include "Parser.h"
 #include "Scanner.h"
 #include "EnvVar.h"
+#include <stdio.h>
 //#include <unistd.h>
 
 Parser::Parser(string commandString) {
