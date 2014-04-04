@@ -6,10 +6,11 @@
 using namespace std;
 
 int main() {
+
 	string prompt = "envsh > ";
 	bool loop = true;
 
-	//Test the scanner implementation
+	
 	while(loop){
 		printf("%s", prompt);
 		//fgets(char* str, int n, FILE* stream)
@@ -18,9 +19,7 @@ int main() {
 		Parser* p = new Parser(command);
 		loop = p->parse(prompt);
 	}
-	
 
 	cin.ignore(200, '\n');
 	cin.ignore(200, '\n');
-	
 }

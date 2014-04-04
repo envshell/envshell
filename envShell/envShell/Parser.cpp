@@ -5,6 +5,21 @@
 
 Parser::Parser(string commandString) {
 	myCommandString = commandString;
+	envVarRows = -1;	//To indicate it has not been set yet
+}
+
+Parser::~Parser() {
+	//Free the memory of the envVarArray
+	for (int i = 0; i < envVarRows; i++) {
+		delete[] envVarArray[i];
+	}
+
+	delete[] envVarArray;
+
+	//Free vector of EnvVars
+	for (int i = 0; i < environmentVariables.size(); i++) {
+		delete environmentVariables[i];
+	}
 }
 
 string Parser::getCommandString(){
@@ -38,6 +53,7 @@ bool Parser::setValues(string & prompt){
 	if(myTokens[i]->getValue() == ">"){
 		myOutfile = myTokens[i++]->getValue();
 	}
+
 	return runProgram(prompt);
 }
 
@@ -76,11 +92,10 @@ bool Parser::runProgram(string & prompt){
 		//note: uncomment #include <unistd.h>
 		//chdir changes the directory to the given path. 
 		//But chdir takes  a const char* and myDirectoryName is a string. 
-		if(chdir(myDirectoryName)!=1){
+		if(execve("/bin/chdir", myDirectoryName.c_str(), envVarConvert()) != 0){		//correct behavior returns a 0, incorrect returns -1
 			//something went wrong
 			printf("Path Error, did not change directory.");
 		}
-
 	}else if(myCommand == "bye"){
 		//exit the shell program
 		return false;
@@ -98,18 +113,46 @@ bool Parser::runProgram(string & prompt){
 			execv(myCommand, myArguments);
 			//should never reach the next line
 			printf("Error in the command.");
-		}else{
-			if(waitpid(kidpid, 0, 0) < 0){
+		}
+		else{
+			if (waitpid(kidpid, 0, 0) < 0){
 				printf("Cannot wait for child.");
 			}
 		}
 	}
+
 	return true;
 
+}
 
+/*
+	Need to call this whenever we want a char** to pass to exec. This will set a member variable. DO NOT call
+	the member variable directly because it may not be updated. The only reason we leep the member variable is so
+	that we can hold the pointer to free the memory created in the dynamic array allocation.
+*/
+char ** Parser::envVarConvert() {
+	//Free the memory of the current envVarArray if already set
+	if (envVarRows != -1) {
+		for (int i = 0; i < envVarRows; i++) {
+			delete[] envVarArray[i];
+		}
 
+		delete[] envVarArray;
+	}
 
+	char ** returnArray;
+	envVarRows = environmentVariables.size();
+	returnArray = new char *[envVarRows];	//initialize number of variables
+	for (int i = 0; i < envVarRows; i++) {
+		returnArray[i] = new char[256];			//Each var has room for 256 chars
+		char * copy = new char[256];
+		strcpy(copy, environmentVariables[i]->getValue().c_str());	//Workaround to convert a const char * to a char *
+		returnArray[i] = copy;
 
+		delete[] copy;
+		int foo = 5;
+	}
 
-
+	envVarArray = returnArray;
+	return returnArray;
 }
