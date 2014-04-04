@@ -13,7 +13,7 @@ int main() {
 
 	
 	while(loop){
-		printf("%s", prompt);
+		printf("%s", prompt.c_str());
 		//fgets(char* str, int n, FILE* stream)
 		//Fgets(command, 256, c.in)
 		string command = "/usr/bin/cat /etc/issue /etc/hosts /etc/debian_version > /tmp/output";

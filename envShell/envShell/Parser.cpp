@@ -2,7 +2,10 @@
 #include "Scanner.h"
 #include "EnvVar.h"
 #include <stdio.h>
-//#include <unistd.h>
+#include <cstring>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 Parser::Parser(string commandString) {
 	myCommandString = commandString;
@@ -64,8 +67,8 @@ bool Parser::runProgram(string & prompt){
 	if(myCommand == "%"){
 		//the argument will be the comment
 		myComment = myArguments[0];
-		//printf("% %s", myComment);
-		cout << "% " << myComment << endl;
+		printf("% %s", myComment.c_str());
+		//cout << "% " << myComment << endl;
 	}else if(myCommand == "prompt"){
 		//set the shell prompt to the prompt argument
 		myNewShellPrompt = myArguments[0];
@@ -85,7 +88,7 @@ bool Parser::runProgram(string & prompt){
 	}else if(myCommand == "listenv"){
 		//prints the list of environment variables and their values
 		for(int i = 0; i < environmentVariables.size(); i++){
-			printf("Environment Variable: %s       Variable Value: %s", environmentVariables[i]->getName(), environmentVariables[i]->getValue());
+			printf("Environment Variable: %s       Variable Value: %s", environmentVariables[i]->getName().c_str(), environmentVariables[i]->getValue().c_str());
 		}
 	}else if(myCommand == "setdir"){
 		//set shell's concept of current directory to directory_name (See getwd(3) and chdir(2))
@@ -93,7 +96,7 @@ bool Parser::runProgram(string & prompt){
 		//note: uncomment #include <unistd.h>
 		//chdir changes the directory to the given path. 
 		//But chdir takes  a const char* and myDirectoryName is a string. 
-		if(execve("/bin/chdir", myDirectoryName.c_str(), envVarConvert()) != 0){		//correct behavior returns a 0, incorrect returns -1
+		if(execl("/bin/chdir", myDirectoryName.c_str(), envVarConvert()) != 0){		//correct behavior returns a 0, incorrect returns -1
 			//something went wrong
 			printf("Path Error, did not change directory.");
 		}
