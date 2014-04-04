@@ -22,4 +22,6 @@ int main() {
 
 	cin.ignore(200, '\n');
 	cin.ignore(200, '\n');
+
+	return 0;
 }
