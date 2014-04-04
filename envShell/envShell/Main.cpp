@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include "Scanner.h"
 #include "Parser.h"
+
+//Uncomment this
+#include <unistd.h>
 using namespace std;
 
 int main() {
@@ -21,20 +24,28 @@ int main() {
 		//Fgets(command, 256, c.in)
 
 		string command;
-		if (envVars.size() > 1) {
-			string command = "setenv var1 thisisntfun";
+
+		//Envar testers
+		/*
+		if (envVars.size() == 1) {
+			command = "setenv var1 thisisntfun";
 		}
-		else {
-			string command = "unsetenv var1 thisisntfun";
+		else if (envVars.size() == 2) {
+			command = "setenv var2 thisisntfun";
 		}
+		else if (envVars.size() == 3) {
+			command = "unsetenv var1 thisisntfun";
+		}		
+		*/
+
 		cout << command;
 		cin.ignore(200, '\n');
 		Parser* p = new Parser(command);
-		loop = p->parse(prompt, envVars);
-
-		//Print out the environment variables
-		for (int i = 0; i < envVars.size(); i++) {
-			cout << "Environment Variable " << i << ":   Name:" << envVars[i]->getName() << "    Value: " << envVars[i]->getValue() << endl;
+		try {
+			loop = p->parse(prompt, envVars);
+		}
+		catch (int i) {
+			cout << "Exception number " << i << " thrown. See the documentation for explanation of exception number." << endl;
 		}
 	}
 

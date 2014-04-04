@@ -68,7 +68,7 @@ vector<Token*> Scanner::scan(string inCommand) {
 
 	if (j == inCommand.length()) {
 		//Reached end, this is one large word
-		spacei = inCommand.length();
+		spacei = inCommand.length() + 1;
 	}
 	else if (!found) { //if no spaces it is invalid
 		throw 1;		//Invalid input string exception
