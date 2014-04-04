@@ -10,10 +10,14 @@ int main() {
 	bool loop = true;
 
 	//Test the scanner implementation
-	string command = "/usr/bin/cat /etc/issue /etc/hosts /etc/debian_version > /tmp/output";
-	Parser* p = new Parser(command);
-	loop = p->parse(prompt);
-
+	while(loop){
+		printf("%s", prompt);
+		//fgets(char* str, int n, FILE* stream)
+		//Fgets(command, 256, c.in)
+		string command = "/usr/bin/cat /etc/issue /etc/hosts /etc/debian_version > /tmp/output";
+		Parser* p = new Parser(command);
+		loop = p->parse(prompt);
+	}
 	
 
 	cin.ignore(200, '\n');

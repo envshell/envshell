@@ -1,6 +1,7 @@
 #include "Parser.h"
 #include "Scanner.h"
 #include "EnvVar.h"
+//#include <unistd.h>
 
 Parser::Parser(string commandString) {
 	myCommandString = commandString;
@@ -72,6 +73,13 @@ bool Parser::runProgram(string & prompt){
 	}else if(myCommand == "setdir"){
 		//set shell's concept of current directory to directory_name (See getwd(3) and chdir(2))
 		myDirectoryName = myArguments[0];
+		//note: uncomment #include <unistd.h>
+		//chdir changes the directory to the given path. 
+		//But chdir takes  a const char* and myDirectoryName is a string. 
+		if(chdir(myDirectoryName)!=1){
+			//something went wrong
+			printf("Path Error, did not change directory.");
+		}
 
 	}else if(myCommand == "bye"){
 		//exit the shell program
@@ -81,7 +89,20 @@ bool Parser::runProgram(string & prompt){
 		return false;
 	}else{
 		//the command is a user-program command, need to use fork() and wait() until the child finishes
-
+		//execv(const char *path, char *const argv[]); 
+		pid_t kidpid = fork();
+		if(kidpid < 0){
+			printf("Internal error, cannot fork.");
+		}else if(kidpid==0){
+			//This is the child
+			execv(myCommand, myArguments);
+			//should never reach the next line
+			printf("Error in the command.");
+		}else{
+			if(waitpid(kidpid, 0, 0) < 0){
+				printf("Cannot wait for child.");
+			}
+		}
 	}
 	return true;
 
