@@ -37,6 +37,11 @@ vector<Token*> Scanner::scan(string inCommand) {
 		value = inCommand.substr(1, string::npos);
 		tokens.push_back(new Token(type, value));
 
+		//Now add an end of line token
+		type = "end-of-line";
+		value = "EOL";
+		tokens.push_back(new Token(type, value));
+
 		//return the tokens vector
 		return tokens;
 	}
@@ -69,7 +74,7 @@ vector<Token*> Scanner::scan(string inCommand) {
 		throw 1;		//Invalid input string exception
 	}
 
-	string firstValue = inCommand.substr(0, spacei);
+	string firstValue = inCommand.substr(0, spacei - 1);
 	string firstType = "word";
 	tokens.push_back(new Token(firstType, firstValue));
 
@@ -92,7 +97,7 @@ vector<Token*> Scanner::scan(string inCommand) {
 
 			//Find the enxty set of quotations
 			int quotei = inCommand.find('"', i + 1);
-			value = inCommand.substr(i, quotei - i + 1);
+			value = inCommand.substr(i, quotei - i);
 
 			//Now add to our vector of Tokens
 			tokens.push_back(new Token(type, value));
@@ -124,14 +129,14 @@ vector<Token*> Scanner::scan(string inCommand) {
 			else if (isspace(inCommand[j])) {
 				delimi = j;
 
-				value = inCommand.substr(originalPos, delimi - originalPos + 1);
+				value = inCommand.substr(originalPos, delimi - originalPos);
 				tokens.push_back(new Token(type, value));
 				i = delimi;
 			}
 			else if (inCommand[j] == '<' || inCommand[j] == '>') {
 				delimi = j;
 
-				value = inCommand.substr(originalPos, delimi - originalPos + 1);
+				value = inCommand.substr(originalPos, delimi - originalPos);
 				tokens.push_back(new Token(type, value));
 				i = delimi - 1;
 			}

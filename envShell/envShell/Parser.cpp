@@ -3,45 +3,55 @@
 #include "EnvVar.h"
 #include <stdio.h>
 #include <cstring>
+#include <algorithm>
 #include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
 
+//Uncomment these
+//#include <sys/wait.h>
+//#include <unistd.h>
+
+//Takes in the command string and a vector of environment variables by reference. Set our environment variables list with the one passed
 Parser::Parser(string commandString) {
 	myCommandString = commandString;
-	envVarRows = -1;	//To indicate it has not been set yet
+	//envVarRows = -1;	//To indicate it has not been set yet
 }
 
 Parser::~Parser() {
+	/*
 	//Free the memory of the envVarArray
 	for (int i = 0; i < envVarRows; i++) {
 		delete[] envVarArray[i];
 	}
 
 	delete[] envVarArray;
+	*/
 
+	/*
 	//Free vector of EnvVars
 	for (int i = 0; i < environmentVariables.size(); i++) {
 		delete environmentVariables[i];
 	}
+	*/
 }
 
 string Parser::getCommandString(){
 	return myCommandString;
 }
 
-bool Parser::parse(string & prompt){
+bool Parser::parse(string & prompt, vector<EnvVar*> & inEnvVars){
+	//environmentVariables = inEnvVars;
+
 	Scanner s;
 	try{
 	myTokens = s.scan(myCommandString);
 	}catch(int i){
 	cout << "Exception Number: " << i << endl;
 	}
-	return setValues(prompt);
+	return setValues(prompt, inEnvVars);
 }
 
 //set token variables to the private command, args, infile, outfile values
-bool Parser::setValues(string & prompt){
+bool Parser::setValues(string & prompt, vector<EnvVar*> & inEnvVars){
 	myCommand = myTokens[0]->getValue();
 	//store arguments until hit "<" or EOL
 	int i = 1;
@@ -58,17 +68,17 @@ bool Parser::setValues(string & prompt){
 		myOutfile = myTokens[i++]->getValue();
 	}
 
-	return runProgram(prompt);
+	return runProgram(prompt, inEnvVars);
 }
 
 
-bool Parser::runProgram(string & prompt){
+bool Parser::runProgram(string & prompt, vector<EnvVar*> & inEnvVars){
 	//built-in commands
 	if(myCommand == "%"){
 		//the argument will be the comment
 		myComment = myArguments[0];
-		printf("% %s", myComment.c_str());
-		//cout << "% " << myComment << endl;
+		//printf("%s", myComment.c_str());
+		cout << "%" << myComment << endl;
 	}else if(myCommand == "prompt"){
 		//set the shell prompt to the prompt argument
 		myNewShellPrompt = myArguments[0];
@@ -78,17 +88,18 @@ bool Parser::runProgram(string & prompt){
 		EnvVar* element = new EnvVar(myArguments[0], myArguments[1]);
 		//element.setName = myArguments[0];
 		//element.setValue = myArguments[1];
-		environmentVariables.push_back(element);
+		inEnvVars.push_back(element);
 		
 	}else if(myCommand == "unsetenv"){
 		//remove this environment variable from the list passed to applications
 		EnvVar* element = new EnvVar(myArguments[0], myArguments[1]);
 		//find element in the environmentVariable list and delete
 
+
 	}else if(myCommand == "listenv"){
 		//prints the list of environment variables and their values
-		for(int i = 0; i < environmentVariables.size(); i++){
-			printf("Environment Variable: %s       Variable Value: %s", environmentVariables[i]->getName().c_str(), environmentVariables[i]->getValue().c_str());
+		for(int i = 0; i < inEnvVars.size(); i++){
+			printf("Environment Variable: %s       Variable Value: %s \n", inEnvVars[i]->getName().c_str(), inEnvVars[i]->getValue().c_str());
 		}
 	}else if(myCommand == "setdir"){
 		//set shell's concept of current directory to directory_name (See getwd(3) and chdir(2))
@@ -96,10 +107,20 @@ bool Parser::runProgram(string & prompt){
 		//note: uncomment #include <unistd.h>
 		//chdir changes the directory to the given path. 
 		//But chdir takes  a const char* and myDirectoryName is a string. 
-		if(execl("/bin/chdir", myDirectoryName.c_str(), envVarConvert()) != 0){		//correct behavior returns a 0, incorrect returns -1
+		char ** envArray = envVarConvert(inEnvVars.size(), inEnvVars);
+//		if(execl("/bin/chdir", myDirectoryName.c_str(), envArray) != 0){		//correct behavior returns a 0, incorrect returns -1
+		if (1) {
 			//something went wrong
 			printf("Path Error, did not change directory.");
 		}
+
+		//Free the memory of the environment array
+		for (int i = 0; i < inEnvVars.size(); i++) {
+			delete[] envArray[i];
+		}
+
+		delete[] envArray;
+
 	}else if(myCommand == "bye"){
 		//exit the shell program
 		return false;
@@ -109,17 +130,40 @@ bool Parser::runProgram(string & prompt){
 	}else{
 		//the command is a user-program command, need to use fork() and wait() until the child finishes
 		//execv(const char *path, char *const argv[]); 
-		pid_t kidpid = fork();
-		if(kidpid < 0){
+//		pid_t kidpid = fork();
+//		if(kidpid < 0){
+		if (1) {
 			printf("Internal error, cannot fork.");
-		}else if(kidpid==0){
+//		}else if(kidpid==0){
+		}
+		else if (1) {
 			//This is the child
-			execv(myCommand, myArguments);
-			//should never reach the next line
+
+			char ** envArray = envVarConvert(inEnvVars.size(), inEnvVars);
+			char ** argArray = argConvert(myArguments.size());
+//			execve(myCommand.c_str(), argArray, envArray);			//Do we need to pass the environment variable to this?
+
+			//should never reach the next line			Alex: why not?
 			printf("Error in the command.");
+
+			//Free memory if it does reach this line?
+			//Free the memory of the environment array
+			for (int i = 0; i < inEnvVars.size(); i++) {
+				delete[] envArray[i];
+			}
+
+			delete[] envArray;
+
+			//Free the memory of the arguments array
+			for (int i = 0; i < myArguments.size(); i++) {
+				delete[] argArray[i];
+			}
+
+			delete[] argArray;
 		}
 		else{
-			if (waitpid(kidpid, 0, 0) < 0){
+//			if (waitpid(kidpid, 0, 0) < 0){
+			if (1) {
 				printf("Cannot wait for child.");
 			}
 		}
@@ -129,34 +173,32 @@ bool Parser::runProgram(string & prompt){
 
 }
 
-/*
-	Need to call this whenever we want a char** to pass to exec. This will set a member variable. DO NOT call
-	the member variable directly because it may not be updated. The only reason we leep the member variable is so
-	that we can hold the pointer to free the memory created in the dynamic array allocation.
-*/
-char ** Parser::envVarConvert() {
-	//Free the memory of the current envVarArray if already set
-	if (envVarRows != -1) {
-		for (int i = 0; i < envVarRows; i++) {
-			delete[] envVarArray[i];
-		}
-
-		delete[] envVarArray;
-	}
-
+char ** Parser::envVarConvert(int rows, vector<EnvVar*> & inEnvVars) {
 	char ** returnArray;
-	envVarRows = environmentVariables.size();
-	returnArray = new char *[envVarRows];	//initialize number of variables
-	for (int i = 0; i < envVarRows; i++) {
+	returnArray = new char *[rows];	//initialize number of variables
+	for (int i = 0; i < rows; i++) {
 		returnArray[i] = new char[256];			//Each var has room for 256 chars
 		char * copy = new char[256];
-		strcpy(copy, environmentVariables[i]->getValue().c_str());	//Workaround to convert a const char * to a char *
+		strcpy(copy, inEnvVars[i]->getValue().c_str());	//Workaround to convert a const char * to a char *
 		returnArray[i] = copy;
 
 		delete[] copy;
-		int foo = 5;
 	}
 
-	envVarArray = returnArray;
+	return returnArray;
+}
+
+char ** Parser::argConvert(int rows) {
+	char ** returnArray;
+	returnArray = new char *[rows];	//initialize number of variables
+	for (int i = 0; i < rows; i++) {
+		returnArray[i] = new char[256];			//Each var has room for 256 chars
+		char * copy = new char[256];
+		strcpy(copy, myArguments[i].c_str());	//Workaround to convert a const char * to a char *
+		returnArray[i] = copy;
+
+		delete[] copy;
+	}
+
 	return returnArray;
 }

@@ -13,18 +13,14 @@ public:
 	Parser(string commandString);
 	~Parser();
 
-	bool parse(string & prompt);
+	bool parse(string & prompt, vector<EnvVar*> & inEnvVars);
 	string getCommandString();
-	bool setValues(string & prompt);
-	bool runProgram(string & prompt);
+	bool setValues(string & prompt, vector<EnvVar*> & inEnvVars);
+	bool runProgram(string & prompt, vector<EnvVar*> & inEnvVars);
 
 private:
-	/*
-	Need to call this whenever we want a char** to pass to exec. This will set a member variable. DO NOT call
-	the member variable directly because it may not be updated. The only reason we leep the member variable is so
-	that we can hold the pointer to free the memory created in the dynamic array allocation.
-	*/
-	char ** envVarConvert();	//Private method to convert our environmentVariables vector to a char** that can be passed to exec methods
+	char ** envVarConvert(int rows, vector<EnvVar*> & inEnvVars);	//Private method to convert our environmentVariables vector to a char** that can be passed to exec methods
+	char ** argConvert(int rows);		//Same for arguments
 
 	//Parts of input 
 	string myCommandString;
@@ -39,11 +35,13 @@ private:
 	string myEnvironmentVariable;
 	string myEnvironmentVariableString;
 	string myDirectoryName;
-	vector<EnvVar *> environmentVariables;
+	//vector<EnvVar *> environmentVariables;
 	
+	/*
 	//Only hold this so we can free it, see the explanation of envVarConvert()
 	char ** envVarArray;
 	int envVarRows;
+	*/
 };
 
 #endif
