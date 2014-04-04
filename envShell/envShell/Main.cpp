@@ -25,6 +25,8 @@ int main() {
 
 		string command;
 
+		command = "setdir /usr";
+
 		//Envar testers
 		/*
 		if (envVars.size() == 1) {

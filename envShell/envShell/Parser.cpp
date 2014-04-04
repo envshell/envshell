@@ -106,18 +106,13 @@ bool Parser::runProgram(string & prompt, vector<EnvVar*> & inEnvVars){
 		//note: uncomment #include <unistd.h>
 		//chdir changes the directory to the given path. 
 		//But chdir takes  a const char* and myDirectoryName is a string. 
-		if (chdir(myDirectoryName.c_str() != 0) {	//Correct behavior returns 0
+		if (chdir(myDirectoryName.c_str()) != 0) {	//Correct behavior returns 0
 			//something went wrong
 			printf("Path Error, did not change directory.");
 		}
-
-		//Free the memory of the environment array
-		for (int i = 0; i < inEnvVars.size(); i++) {
-			delete[] envArray[i];
+		else {
+			cout << "Directory has been changed to " << myDirectoryName << endl;
 		}
-
-		delete[] envArray;
-
 	}else if(myCommand == "bye"){
 		//exit the shell program
 		return false;
