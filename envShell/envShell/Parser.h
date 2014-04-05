@@ -20,7 +20,7 @@ public:
 
 private:
 	char ** envVarConvert(int rows, vector<EnvVar*> & inEnvVars);	//Private method to convert our environmentVariables vector to a char** that can be passed to exec methods
-	char ** argConvert(int rows);		//Same for arguments
+	char ** argConvert(string inCommand, int rows);		//Same for arguments
 	int vectorSearch(string name, vector<EnvVar*> & vector);
 
 	//Parts of input 

@@ -24,8 +24,7 @@ int main() {
 		//Fgets(command, 256, c.in)
 
 		string command;
-
-		command = "setdir /usr";
+		command = "/usr/bin/wc -l paper.txt";
 
 		//Envar testers
 		/*

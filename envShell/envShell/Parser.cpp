@@ -116,57 +116,85 @@ bool Parser::runProgram(string & prompt, vector<EnvVar*> & inEnvVars){
 	}else if(myCommand == "bye"){
 		//exit the shell program
 		return false;
-	}else if(myCommand == "^D"){
-		//exit the shell program
+	}else if(myCommand[0] == 0x04){
+		//ctrl+D entered, exit the shell program
 		return false;
 	}else{
 		//the command is a user-program command, need to use fork() and wait() until the child finishes
 		//execv(const char *path, char *const argv[]); 
-		pid_t kidpid = fork();
+		//pid_t kidpid = fork();
+		/*
 		if(kidpid < 0){
 			printf("Internal error, cannot fork.");
-		}else if(kidpid==0){
+		*/
+
+		int retval;
+		int child_status;
+		pid_t pid = fork();
+		char ** envArray = envVarConvert(inEnvVars.size(), inEnvVars);
+		char ** argArray = argConvert(myCommand, myArguments.size());
+
+		if(pid == 0){
 			//This is the child
 
-			char ** envArray = envVarConvert(inEnvVars.size(), inEnvVars);
-			char ** argArray = argConvert(myArguments.size());
-			execve(myCommand.c_str(), argArray, envArray);			//Do we need to pass the environment variable to this?
+			//int i = execle(argArray[0], argArray[1], NULL, envArray);	//This works with different results
+			int i = execvpe(argArray[0], argArray, envArray);
 
-			//should never reach the next line			Alex: why not?
-			printf("Error in the command.");
+			//should never reach the next line
+			printf("Error in the command.\n");
 
+			if (i < 0) {
+				cout << "The command " << myCommand << " could not be found." << endl;
+			}
+
+			//Does not reach these lines, how do we free that memory
+			/*
 			//Free memory if it does reach this line?
 			//Free the memory of the environment array
 			for (int i = 0; i < inEnvVars.size(); i++) {
-				delete[] envArray[i];
+			delete[] envArray[i];
 			}
 
 			delete[] envArray;
 
 			//Free the memory of the arguments array
 			for (int i = 0; i < myArguments.size(); i++) {
-				delete[] argArray[i];
+			delete[] argArray[i];
 			}
 
 			delete[] argArray;
+			*/
 		}
+		else {
+			//Debug Statement
+			//cout << "The parent started a child to run " << myCommand 
+			//	<< " with param " << argArray[2] << endl;
+			retval = wait(&child_status);		//Block until child terminates
+		}
+
+		/*
 		else{
 			if (waitpid(kidpid, 0, 0) < 0){
 				printf("Cannot wait for child.");
 			}
 		}
+		*/
 	}
 
 	return true;
 }
 
+//Does this also need to be null terminated????
 char ** Parser::envVarConvert(int rows, vector<EnvVar*> & inEnvVars) {
 	char ** returnArray;
 	returnArray = new char *[rows];	//initialize number of variables
 	for (int i = 0; i < rows; i++) {
 		returnArray[i] = new char[256];			//Each var has room for 256 chars
+		
+		//Build string of the form name=value
+		string var = "" + inEnvVars[i]->getName() + "=" + inEnvVars[i]->getValue();
 		char * copy = new char[256];
-		strcpy(copy, inEnvVars[i]->getValue().c_str());	//Workaround to convert a const char * to a char *
+		strcpy(copy, var.c_str());	//Workaround to convert a const char * to a char *
 		returnArray[i] = copy;
 
 		delete[] copy;
@@ -175,17 +203,28 @@ char ** Parser::envVarConvert(int rows, vector<EnvVar*> & inEnvVars) {
 	return returnArray;
 }
 
-char ** Parser::argConvert(int rows) {
+//Add the path of the file as the first argument in the array and NULL terminate this array
+char ** Parser::argConvert(string myCommand, int rows) {
 	char ** returnArray;
-	returnArray = new char *[rows];	//initialize number of variables
-	for (int i = 0; i < rows; i++) {
+	returnArray = new char *[rows + 2];	//initialize number of variables
+
+	//Make the command the first argument
+	returnArray[0] = new char[256];			//Each var has room for 256 chars
+	char * workaround = new char[256];
+	strcpy(workaround, myCommand.c_str());	//Workaround to convert a const char * to a char *
+	returnArray[0] = workaround;
+	delete[] workaround;
+
+	for (int i = 1; i <= rows; i++) {
 		returnArray[i] = new char[256];			//Each var has room for 256 chars
 		char * copy = new char[256];
-		strcpy(copy, myArguments[i].c_str());	//Workaround to convert a const char * to a char *
+		strcpy(copy, myArguments[i - 1].c_str());	//Workaround to convert a const char * to a char *
 		returnArray[i] = copy;
 
 		delete[] copy;
 	}
+
+	returnArray[rows + 1] = NULL;
 
 	return returnArray;
 }
