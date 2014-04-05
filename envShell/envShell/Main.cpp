@@ -1,4 +1,5 @@
 #include <string>
+#include <cstring>
 #include <vector>
 #include <iostream>
 #include <stdio.h>
@@ -19,12 +20,17 @@ int main() {
 	while (loop){
 		printf("%s", prompt.c_str());
 
+		printf("Enter a command and any arguments you may have (separated by a space): ");
+		char cmd[256];
 		//get user input
-		//fgets(char* str, int n, FILE* stream)
-		//Fgets(command, 256, c.in)
+		fgets(cmd, 256, stdin);
+		cmd[strlen(cmd) - 1] = '\0';	/* this removes the \n */
+		string command = cmd;
 
+		/*
 		string command;
 		command = "/usr/bin/wc -l paper.txt";
+		*/
 
 		//Envar testers
 		/*
@@ -39,8 +45,6 @@ int main() {
 		}		
 		*/
 
-		cout << command;
-		cin.ignore(200, '\n');
 		Parser* p = new Parser(command);
 		try {
 			loop = p->parse(prompt, envVars);
