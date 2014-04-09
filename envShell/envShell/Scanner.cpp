@@ -83,21 +83,25 @@ vector<Token*> Scanner::scan(string inCommand) {
 		char c = inCommand[i];
 
 		//Take action depending on the character present
-		if (c == '<' || c == '>') {
+		if (c == '<'){
 			//metachar handling
 			type = "metachar";
-			value = "" + c;
+			value = "<";
 
 			tokens.push_back(new Token(type, value));
-		}
-		else if (c == '"') {
+		}else if(c == '>'){
+			type = "metachar";
+			value = ">";
+			tokens.push_back(new Token(type, value));
+
+		}else if (c == '"') {
 			//string handling
 			value;
 			type = "string";
 
 			//Find the enxty set of quotations
 			int quotei = inCommand.find('"', i + 1);
-			value = inCommand.substr(i, quotei - i);
+			value = inCommand.substr(i+1, quotei - (i+1));
 
 			//Now add to our vector of Tokens
 			tokens.push_back(new Token(type, value));

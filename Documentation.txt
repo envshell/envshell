@@ -1,12 +1,13 @@
-Types:
-word
-string
-eol
-metachar
-terminate
+Robert Burrus
+Alex Henry
 
-Usage:
+Scanner:
+	Scanner takes in a command string and reads the command into different tokens that have a type and value.
+	It has a basic idea of how a command should be formed and will thrown an Exception 1 if the command is not
+	in a valid form. It iterates through the command looking for the specific delimiters '<', '>', '"', and spaces. If it finds a quotation mark it ensures to read the enclosed section without stopping on the normal	delimiters. Once it finds an atomic section of the command, it then creates a Token object from it and stores it in a vector of Tokens. The types of Tokens are the same as the ones specified in the assignment (metachar, word, etc.). It iteratively continues this process until it has read through the entire command and then it returns the vector of Tokens. If unexpected behavior occurs it will thrown an Exception 99.
+	
+Token:
+	Simple data abstraction we use to make the program simpler. Token simply holds a string that identifies its type and a string that identifies its value. It has a getter function for each of those pieces of data.
 
-Exception List:
-1 - Invalid input exception
-99 - Unreachable code exception
+EnvVar:
+	Simple data abstraction that is identical in implementation as Token. However, this data abstraction is intended to hold the name and value of our environment variables. We could have used the Token class here but decided that for the sake of transparency it would be best to use a different class name.

@@ -1,3 +1,6 @@
+
+
+
 #ifndef PARSER_H
 #define PARSER_H
 
@@ -30,6 +33,9 @@ private:
 	vector<string> myArguments;
 	string myInfile;
 	string myOutfile;
+
+	bool inFile;
+	bool outFile;
 
 	string myComment;
 	string myNewShellPrompt;

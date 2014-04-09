@@ -1,3 +1,6 @@
+
+
+
 #include "Parser.h"
 #include "Scanner.h"
 #include "EnvVar.h"
@@ -6,7 +9,7 @@
 #include <algorithm>
 #include <iterator>
 #include <sys/types.h>
-
+#include <fcntl.h>
 //Uncomment these
 #include <sys/wait.h>
 #include <unistd.h>
@@ -41,6 +44,10 @@ bool Parser::parse(string & prompt, vector<EnvVar*> & inEnvVars){
 //set token variables to the private command, args, infile, outfile values
 bool Parser::setValues(string & prompt, vector<EnvVar*> & inEnvVars){
 	myCommand = myTokens[0]->getValue();
+	/*cout << "myCommand = " << myCommand << endl;
+	for(int i = 0; i< myTokens.size(); i++){
+		cout << myTokens[i]->getValue() << endl;
+	}*/
 	//store arguments until hit "<" or EOL
 	int i = 1;
 	while (myTokens[i]->getValue() != "<" && myTokens[i]->getValue() != ">" && (myTokens[i]->getValue() != "EOL" && myTokens[i]->getType() != "end-of-line")){
@@ -49,12 +56,21 @@ bool Parser::setValues(string & prompt, vector<EnvVar*> & inEnvVars){
 	}
 	//check to see if there is an input file
 	if(myTokens[i]->getValue() == "<"){
-		myInfile = myTokens[i++]->getValue();
-	}
+		i++;
+		myInfile = myTokens[i]->getValue();
+		inFile = true;
+		i++;
+	}else{inFile = false;}
 	//check to see if there is an output file
 	if(myTokens[i]->getValue() == ">"){
-		myOutfile = myTokens[i++]->getValue();
-	}
+		i++;
+		myOutfile = myTokens[i]->getValue();
+		
+		//Debug print statement
+		//cout << "Output file is: " << myOutfile << endl;
+		
+		outFile = true;
+	}else{outFile = false;}
 
 	return runProgram(prompt, inEnvVars);
 }
@@ -71,6 +87,7 @@ bool Parser::runProgram(string & prompt, vector<EnvVar*> & inEnvVars){
 		//set the shell prompt to the prompt argument
 		myNewShellPrompt = myArguments[0];
 		prompt = myNewShellPrompt;
+		cout << "Prompt set to: " << prompt << endl;
 	}else if(myCommand == "setenv"){
 		//check if there is a current variable with this name
 		if (vectorSearch(myArguments[0], inEnvVars) >= 0) {
@@ -84,12 +101,13 @@ bool Parser::runProgram(string & prompt, vector<EnvVar*> & inEnvVars){
 
 	}else if(myCommand == "unsetenv"){
 		//remove this environment variable from the list passed to applications
-		EnvVar* element = new EnvVar(myArguments[0], myArguments[1]);
+		//EnvVar* element = new EnvVar(myArguments[0], myArguments[1]);
 
 		//find element in the environmentVariable list and delete
 		int index = vectorSearch(myArguments[0], inEnvVars);
 		if (index >= 0) {
 			inEnvVars.erase(inEnvVars.begin() + index);
+			cout << "Removed " << myArguments[0] << " from the list." << endl;
 			return true;
 		}
 		else {
@@ -97,8 +115,12 @@ bool Parser::runProgram(string & prompt, vector<EnvVar*> & inEnvVars){
 		}
 	}else if(myCommand == "listenv"){
 		//prints the list of environment variables and their values
-		for(int i = 0; i < inEnvVars.size(); i++){
-			printf("Environment Variable: %s       Variable Value: %s \n", inEnvVars[i]->getName().c_str(), inEnvVars[i]->getValue().c_str());
+		if(inEnvVars.size() == 0){
+			cout << "There are no environment varaibles set." << endl;
+		}else{
+			for(int i = 0; i < inEnvVars.size(); i++){
+				printf("Environment Variable: %s       Variable Value: %s \n", inEnvVars[i]->getName().c_str(), inEnvVars[i]->getValue().c_str());
+			}
 		}
 	}else if(myCommand == "setdir"){
 		//set shell's concept of current directory to directory_name (See getwd(3) and chdir(2))
@@ -108,7 +130,7 @@ bool Parser::runProgram(string & prompt, vector<EnvVar*> & inEnvVars){
 		//But chdir takes  a const char* and myDirectoryName is a string. 
 		if (chdir(myDirectoryName.c_str()) != 0) {	//Correct behavior returns 0
 			//something went wrong
-			printf("Path Error, did not change directory.");
+			printf("Path Error, did not change directory.\n");
 		}
 		else {
 			cout << "Directory has been changed to " << myDirectoryName << endl;
@@ -118,15 +140,12 @@ bool Parser::runProgram(string & prompt, vector<EnvVar*> & inEnvVars){
 		return false;
 	}else if(myCommand[0] == 0x04){
 		//ctrl+D entered, exit the shell program
+		//Doesn't work but our program handles end of file input anyway so the Ctrl+D handling is
+		//unnecessary
 		return false;
 	}else{
 		//the command is a user-program command, need to use fork() and wait() until the child finishes
 		//execv(const char *path, char *const argv[]); 
-		//pid_t kidpid = fork();
-		/*
-		if(kidpid < 0){
-			printf("Internal error, cannot fork.");
-		*/
 
 		int retval;
 		int child_status;
@@ -138,47 +157,58 @@ bool Parser::runProgram(string & prompt, vector<EnvVar*> & inEnvVars){
 			//This is the child
 
 			//int i = execle(argArray[0], argArray[1], NULL, envArray);	//This works with different results
-			int i = execvpe(argArray[0], argArray, envArray);
-
-			//should never reach the next line
-			printf("Error in the command.\n");
+			int i;
+			int fdw;
+			int fdr;
+			if(inFile){
+				const char * infile = myInfile.c_str();
+                                fdr = open(infile, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); // remember to close
+                                if(fdr<0){
+                                    //error in opening
+									cout << "Error in opening the file " << myInfile << endl;
+                                }
+				//sets the stdin to be directed from the input file
+				dup2(fdr, 0);
+			}
+			
+			if(outFile){
+				const char * outfile = myOutfile.c_str();
+				fdw = open(outfile, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); // remember to close
+				if(fdw<0){
+        	    //error in opening
+				cout << "Error opening the file " << myOutfile << endl;
+	            }
+				//sets the stdout to be directed into the output file
+				dup2(fdw,1);
+			}
+			
+			i = execvpe(argArray[0], argArray, envArray);
+			if(outFile){
+				int returnvalue;
+				if((returnvalue = close(fdw)) < 0){
+					//error closing
+					cout << "Error closing the outputfile" << endl;
+				}
+			}
+			if(inFile){
+                       int returnvalue;
+                       if((returnvalue = close(fdr)) < 0){
+						   //error closing
+						   cout << "Error closing the input file" << endl;
+                       }
+            }
 
 			if (i < 0) {
 				cout << "The command " << myCommand << " could not be found." << endl;
+
+				exit(0);
 			}
 
-			//Does not reach these lines, how do we free that memory
-			/*
-			//Free memory if it does reach this line?
-			//Free the memory of the environment array
-			for (int i = 0; i < inEnvVars.size(); i++) {
-			delete[] envArray[i];
-			}
-
-			delete[] envArray;
-
-			//Free the memory of the arguments array
-			for (int i = 0; i < myArguments.size(); i++) {
-			delete[] argArray[i];
-			}
-
-			delete[] argArray;
-			*/
+			//Does not reach this line
 		}
 		else {
-			//Debug Statement
-			//cout << "The parent started a child to run " << myCommand 
-			//	<< " with param " << argArray[2] << endl;
 			retval = wait(&child_status);		//Block until child terminates
 		}
-
-		/*
-		else{
-			if (waitpid(kidpid, 0, 0) < 0){
-				printf("Cannot wait for child.");
-			}
-		}
-		*/
 	}
 
 	return true;
